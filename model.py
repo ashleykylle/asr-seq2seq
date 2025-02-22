@@ -18,7 +18,7 @@ print(f"Using : {device}")
 # ! FILE NAME !
 # ! FILE NAME !
 # ! FILE NAME !
-wav_file = "rec_001_8_fil.wav" # CHANGE TO FILE NAME 
+wav_file = "rec_001_7_fil.wav" # CHANGE TO FILE NAME 
 file_path = os.path.join("WAV files", wav_file)
 
 if not os.path.isfile(file_path):
@@ -26,30 +26,50 @@ if not os.path.isfile(file_path):
     exit()
 
 dictionary = {
+    # KNOWN ISSUES :
+    # - "vitamin c" is being predicted as just "vitamins"
+    # - "growee" is being predicted as "growing"
+
+
     # GENERAL WORDS
+    "ayoko": "ayaw ko",
+    "ganon": "ganoon",
     "di": "hindi",
     "eto": "ito",
     "yan": "iyan",
-    "ganon": "ganoon",
-    "ayoko": "ayaw ko",
     "oh oh": "oo",
     # MEDICAL TERMS
-    "lamin a": "vitamin a",
-    "growi": "growee",
-    "sherifur": "cherifer",
+    "alkasigay": "alka c",
     "apetazone": "appetason",
-    "novacy": "novacee",
-    "fernsea": "fern-c",
     "cilin": "ceelin",
+    "celine": "ceelin",                       # UNSURE, THIS CAN CONFLICT WITH CELINE NAME IF EVER
+    "sili chua balls": "ceelin chewables",
+    "silituables": "ceelin chewables",
+    "celine plus": "ceelin plus",
+    "sherifur": "cherifer",
+    "sherifir": "cherifer",
+    "sherryfur": "cherifer",
+    "sherifere": "cherifer",
+    "sherry for": "cherifer",
+    "fernsea": "fern-c",
+    "gumis": "gummies",
+    "growi": "growee",
     "lysine ion": "lysine iron",
+    "nutrilene": "nutrilyn",
+    "nutriplegs": "nutriplex",
+    "novacy": "novacee",
+    "nova sea": "novacee",
+    "pet sink": "pedzinc",
+    "price kids": "pryce kids",
+    "scots": "scotts",
+    "lamin a": "vitamin a",
 }
 
 def replace_equivalent_words(text):
-    words = text.split()
-    for i, word in enumerate(words):
-        if word in dictionary:
-            words[i] = dictionary[word]
-    return " ".join(words)
+    for key, value in sorted(dictionary.items(), key=lambda x: -len(x[0])):
+        pattern = rf"\b{re.escape(key)}\b"
+        text = re.sub(pattern, value, text, flags=re.IGNORECASE)
+    return text
 
 # text normalization
 def normalize_text(text):
@@ -59,7 +79,7 @@ def normalize_text(text):
     return text
 
 # load audio and chunk for long audio
-def split_audio(file_path, chunk_duration=30):
+def split_audio(file_path, chunk_duration=5):
     waveform, sr = torchaudio.load(file_path)
     resampler = T.Resample(orig_freq=sr, new_freq=16000)
     waveform = resampler(waveform)
@@ -98,7 +118,7 @@ print(f"\nTranscription: {final_transcript}\n")
 # TO DO : make transcripts for finetuning
 # if we have reference transcripts, compare with predicted outputs
 # FOR NOW HARD CODE REFERENCE TEXT
-reference_text = "Hindi ko matandaan. "
+reference_text = "Hindi ko matandaan. Vitamin C. Pedzinc. Gummies. I forgot. Ceelin Plus. Growee. Ceelin. Vitamin C. Propan TLC. Ceelin chewables. Vitamin A. Nutriplex. Growee. Cherifer. Apetazone. Novacee. Fern-C. Pryze Kids. Celermin. Tableta. Ceelin Plus. B Complex. Lysine Iron. Neurolem. Nutriplex. Cherifer. Immunomax. Alka C. Nutrilyn. Scotts."
 normalized_reference = normalize_text(reference_text)
 normalized_predicted = normalize_text(final_transcript)
 
